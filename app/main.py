@@ -33,6 +33,7 @@ def create_app() -> FastAPI:
 
     # Internal routes (not shown in API docs)
     from app.api.internal.deploy import router as deploy_router
+
     application.include_router(deploy_router)
 
     # Health check (unauthenticated)
