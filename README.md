@@ -296,32 +296,83 @@ Example Claude Desktop config (`claude_desktop_config.json`):
 
 ---
 
-## Replit Setup
+## Replit Deployment Guide
 
-### Connect GitHub to Replit
+### Prerequisites
 
-1. Create a new Replit project and select **Import from GitHub**
-2. Connect your GitHub repo
-3. Replit will auto-detect the `.replit` config
+- GitHub repository with this template pushed to `main`
+- Replit Core account
+- GitHub Actions enabled on the repo (Settings > Actions > General > Allow all actions)
+- GitHub Actions write permission (Settings > Actions > General > Workflow permissions > Read and write)
 
-### Configure Secrets on Replit
+### Step 1 — Create the deploy branch
 
-In the Replit **Secrets** panel, add:
+From your local machine:
+
+```bash
+git checkout -b deploy
+git push origin deploy
+git checkout main
+```
+
+### Step 2 — Create the Repl
+
+1. Go to [replit.com](https://replit.com) > **Create Repl** > **Import from GitHub**
+2. Connect your GitHub account if needed
+3. Select your repository and import the **`deploy`** branch
+4. Wait for Replit to set up the environment
+
+### Step 3 — Configure Secrets on Replit
+
+In **Tools > Secrets**, add:
 
 | Key | Value |
 |-----|-------|
 | `API_KEY` | Your production API key |
 | `GEMINI_API_KEY` | Your Google Gemini API key |
 
+### Step 4 — Verify the app runs
+
+Click **Run** in Replit. You should see uvicorn start. Test with:
+
+```bash
+curl https://YOUR-REPL-URL/health
+```
+
+Expected: `{"status":"ok","app":"API-MCP"}`
+
+### Step 5 — Deploy
+
+Go to the **Deploy** tab > select **Reserved VM** > click **Deploy**.
+
 ### Deployment Flow
 
-1. Push to `main` on GitHub
-2. GitHub Actions runs lint + tests + docs check
-3. On success, CI pushes to the `deploy` branch
-4. Replit auto-syncs from the `deploy` branch
-5. App restarts on Replit
+```
+git push main
+  > GitHub Actions: lint + test + docs-check
+    > (all pass) auto-push to deploy branch
+      > You: git reset --hard origin/deploy (in Replit Shell)
+        > You: click Redeploy in Replit UI
+```
 
-Configure Replit to watch the `deploy` branch (not `main`) in the Git settings panel.
+1. Push to `main` on GitHub
+2. GitHub Actions runs lint, tests, and docs check
+3. On success, CI pushes to the `deploy` branch automatically
+4. In the Replit Shell, pull the latest: `git fetch origin && git reset --hard origin/deploy`
+5. Click **Redeploy** in the Replit Deploy tab
+
+> **Note:** Replit does not support auto-deploy from GitHub. Steps 4-5 are manual.
+
+### Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `git fetch` fails with `.lock` error | `rm /home/runner/workspace/.git/refs/remotes/origin/HEAD.lock` then retry |
+| `git pull` says "divergent branches" | Use `git reset --hard origin/deploy` instead |
+| App returns 500 after redeploy | Check Replit Logs tab for Python traceback |
+| CI deploy job fails with exit code 128 | Enable write permissions: repo Settings > Actions > General > Workflow permissions > Read and write |
+| `ModuleNotFoundError` in Replit Shell | Run `/home/runner/workspace/.pythonlibs/bin/python -m pip install -r requirements.txt` |
+| Secrets not found by app | Add them in Replit Tools > Secrets (not in `.replit` file). Redeploy after adding. |
 
 ---
 

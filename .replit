@@ -13,13 +13,3 @@ run = ["sh", "-c", "pip install -r requirements.txt && uvicorn app.main:app --ho
 [[ports]]
 localPort = 8000
 externalPort = 80
-
-[userenv]
-
-[userenv.shared]
-GEMINI_API_KEY = "AIzaSyBeRGBSMzfgItXIYNg2GTBNwMbaunT6Sng"
-API_KEY = "GPPswqxeDA4YmwPmFiDEsbDaI-AH95GJAEPA_IVb7GPP"
-DEPLOY_TOKEN = "3ca29fd4d5124e23569c5c28ee8381378b8b4ab78d6cf501f4f709ed14cd6be7"
-
-[agent]
-expertMode = true
