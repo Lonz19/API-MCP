@@ -15,9 +15,12 @@ async def redeploy(authorization: str = Header(None)):
     if not token or authorization != f"Bearer {token}":
         raise HTTPException(status_code=403, detail="Unauthorized")
 
-    # Pull latest code from deploy branch then restart the process
-    subprocess.Popen(
-        ["bash", "-c", "sleep 1 && git pull origin deploy && kill 1"],
-        cwd=str(REPO_ROOT),
-    )
-    return {"status": "redeploy triggered"}
+    try:
+        subprocess.Popen(
+            ["bash", "-c", "sleep 1 && git pull origin deploy && kill 1"],
+            cwd=str(REPO_ROOT),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"status": "redeploy triggered", "repo_root": str(REPO_ROOT)}
