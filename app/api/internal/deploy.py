@@ -6,6 +6,11 @@ from fastapi.responses import JSONResponse
 router = APIRouter()
 
 
+@router.get("/internal/ping", include_in_schema=False)
+async def ping():
+    return {"ok": True, "deploy_token_set": bool(os.getenv("DEPLOY_TOKEN"))}
+
+
 @router.post("/internal/redeploy", include_in_schema=False)
 async def redeploy(authorization: str | None = Header(default=None)):
     token = os.getenv("DEPLOY_TOKEN")
