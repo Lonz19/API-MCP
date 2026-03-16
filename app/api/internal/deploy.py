@@ -8,7 +8,7 @@ router = APIRouter()
 
 @router.get("/internal/ping", include_in_schema=False)
 async def ping():
-    return {"ok": True, "deploy_token_set": bool(os.getenv("DEPLOY_TOKEN"))}
+    return {"ok": True}
 
 
 @router.post("/internal/redeploy", include_in_schema=False)
