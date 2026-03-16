@@ -1,7 +1,6 @@
 import os
 import subprocess
 from fastapi import APIRouter, Header, HTTPException
-from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -17,13 +16,37 @@ async def redeploy(authorization: str | None = Header(default=None)):
     if not token or authorization != f"Bearer {token}":
         raise HTTPException(status_code=403, detail="Unauthorized")
 
-    try:
-        cwd = os.getcwd()
-        subprocess.Popen(
-            ["bash", "-c", "sleep 1 && git pull origin deploy && kill 1"],
-            cwd=cwd,
-        )
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e), "cwd": cwd})
+    cwd = os.getcwd()
 
-    return {"status": "redeploy triggered", "cwd": cwd}
+    # Step 1: check git status
+    git_status = subprocess.run(
+        ["git", "status", "--short"],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+    )
+
+    # Step 2: check current branch and remote
+    git_remote = subprocess.run(
+        ["git", "remote", "-v"],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+    )
+
+    # Step 3: try git pull and capture output
+    git_pull = subprocess.run(
+        ["git", "pull", "origin", "deploy"],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+    )
+
+    return {
+        "cwd": cwd,
+        "git_status": git_status.stdout or git_status.stderr,
+        "git_remote": git_remote.stdout or git_remote.stderr,
+        "git_pull_stdout": git_pull.stdout,
+        "git_pull_stderr": git_pull.stderr,
+        "git_pull_returncode": git_pull.returncode,
+    }
