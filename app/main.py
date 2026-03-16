@@ -31,6 +31,10 @@ def create_app() -> FastAPI:
     # API routes
     application.include_router(v1_router)
 
+    # Internal routes (not shown in API docs)
+    from app.api.internal.deploy import router as deploy_router
+    application.include_router(deploy_router)
+
     # Health check (unauthenticated)
     @application.get("/health", tags=["Health"])
     async def health():
